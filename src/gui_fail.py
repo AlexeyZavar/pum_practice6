@@ -1,12 +1,11 @@
-import qasync
 from PySide6.QtCore import QPoint
 from PySide6.QtGui import QPainter, Qt, QFont, QImage, QFontMetrics
 from PySide6.QtWidgets import QWidget
 
 from src import *
 
-TRAIN_IMAGE = QImage('./assets/train.png').scaled(50, 50)
-TRAIN_IMAGE_REVERSED = QImage('./assets/train.png').scaled(50, 50).mirrored(True, False)
+TRAIN_IMAGE = QImage('./assets/train-old.png').scaled(50, 50)
+TRAIN_IMAGE_REVERSED = QImage('./assets/train-old.png').scaled(50, 50).mirrored(True, False)
 
 DOT_RADIUS = 15
 DOT_OFFSET = 60

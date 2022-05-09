@@ -42,4 +42,5 @@ def create_console_handler():
 
 logging.basicConfig(format=format, datefmt=datefmt, style='{', level=logging.INFO, handlers=[create_console_handler()])
 
-from .simulation import Simulation, DynamicConfig, rokossovskaya, sobornaya, crystal, zarechnaya, biblioteka, paths
+from .simulation import Simulation, DynamicConfig, rokossovskaya, sobornaya, crystal, zarechnaya, biblioteka, paths, \
+    stations

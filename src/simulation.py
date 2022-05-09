@@ -1,10 +1,10 @@
 import asyncio
 import logging
 import random
+import time
 from dataclasses import dataclass
 
 from src.consts import *
-
 
 logger = logging.getLogger(__name__)
 
@@ -58,18 +58,16 @@ class Train:
         while 1:
             self.unload_people()
 
-            await asyncio.sleep(TRAIN_AFK * DynamicConfig.time_modifier)
             self.change_direction_if_required()
+            await asyncio.sleep(TRAIN_AFK * DynamicConfig.time_modifier)
 
             self.load_people()
-            await asyncio.sleep(0)
 
             self.next_station = stations[self.current_station.idx + self.direction]
 
-            w = paths[self.current_station][self.next_station] / path_length
-            for _ in range(100):
-                self.path_total += w * self.direction
-                await asyncio.sleep(abs(w) * DynamicConfig.time_modifier)
+            for _ in range(int(paths[self.current_station][self.next_station] / 30)):
+                self.path_total += 30 * self.direction
+                await asyncio.sleep(30 * DynamicConfig.time_modifier)
 
             self.current_station = self.next_station
 
@@ -93,7 +91,7 @@ class Station:
                 print(f'HAHA DED ON {self.name}')
                 exit(666)
 
-            await asyncio.sleep(1 * DynamicConfig.time_modifier)
+            await asyncio.sleep(DynamicConfig.time_modifier)
 
     def __gt__(self, other):
         return self.idx > other.idx
@@ -153,9 +151,32 @@ path_length = 18 * 60
 
 class Simulation:
     def __init__(self, trains_count):
-        self.trains = [Train() for _ in range(trains_count)]
+        self.trains = [Train() for _ in range(trains_count // 2)]
+        for _ in range(trains_count // 2):
+            train = Train()
+            train.direction = -1
+            train.current_station = biblioteka
+            train.next_station = zarechnaya
+            train.path_total = path_length
+            self.trains.append(train)
+
+        self.start = -1
+
+    @property
+    def people_count(self):
+        return self.people_in_trains + self.people_at_stations
+
+    @property
+    def people_in_trains(self):
+        return sum(len(train.people) for train in self.trains)
+
+    @property
+    def people_at_stations(self):
+        return sum(len(station.people) for station in stations)
 
     async def stats(self):
+        await asyncio.sleep(0.01)
+
         while 1:
             logger.info('Stats:')
             logger.info(f'Rosovskaya: {len(rokossovskaya.people)}')
@@ -165,7 +186,8 @@ class Simulation:
             logger.info(f'Biblioteka: {len(biblioteka.people)}')
 
             for train in self.trains:
-                logger.info(f'Train: {len(train.people)} people, on {train.current_station.name}, {train.path_total}% of the way')
+                logger.info(
+                    f'Train: {len(train.people)} people, on {train.current_station.name}, {train.path_total} of the way')
 
             await asyncio.sleep(2)
 
@@ -174,11 +196,14 @@ class Simulation:
 
         trains_tasks = []
 
-        for item in self.trains:
-            trains_tasks.append(asyncio.create_task(item.do_stuff()))
+        for a, b in zip(self.trains[:len(self.trains) // 2], self.trains[len(self.trains) // 2:]):
+            trains_tasks.append(asyncio.create_task(a.do_stuff()))
+            trains_tasks.append(asyncio.create_task(b.do_stuff()))
             await asyncio.sleep(interval * DynamicConfig.time_modifier)
 
         stations_tasks = [asyncio.create_task(station.spawn_people()) for station in stations]
+        self.start = time.time()
+
         await asyncio.sleep(0)
 
         tasks = stations_tasks + trains_tasks
