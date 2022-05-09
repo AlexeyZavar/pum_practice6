@@ -65,9 +65,9 @@ class Train:
 
             self.next_station = stations[self.current_station.idx + self.direction]
 
-            for _ in range(int(paths[self.current_station][self.next_station] / 30)):
-                self.path_total += 30 * self.direction
-                await asyncio.sleep(30 * DynamicConfig.time_modifier)
+            for _ in range(int(paths[self.current_station][self.next_station] / 10)):
+                self.path_total += 10 * self.direction
+                await asyncio.sleep(10 * DynamicConfig.time_modifier)
 
             self.current_station = self.next_station
 

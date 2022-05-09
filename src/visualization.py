@@ -1,15 +1,19 @@
 import asyncio
 import io
+import random
 import time
 
 import matplotlib.pyplot as plt
 import pygame
 from PIL import Image
-from pygame import gfxdraw
+from pygame import gfxdraw, mixer
 
 from src import *
 
 pygame.init()
+mixer.init()
+mixer.music.load('./assets/music.mp3')
+mixer.music.set_volume(0.5)
 
 ICON = pygame.image.load('./assets/icon.png')
 TRAIN_IMAGE = pygame.transform.flip(pygame.transform.scale(pygame.image.load('./assets/train.png'), (64, 64)), True,
@@ -50,12 +54,18 @@ async def visualize(simulation: Simulation):
                     DynamicConfig.time_modifier = 0.001
                 elif event.key == pygame.K_3:
                     DynamicConfig.time_modifier = 0.0005
+                elif event.key == pygame.K_4:
+                    DynamicConfig.time_modifier = 0.0001
                 elif event.key == pygame.K_F1:
                     selected_image = TRAIN_IMAGE
                     selected_image_reversed = TRAIN_IMAGE_REVERSED
                 elif event.key == pygame.K_F2:
                     selected_image = TRAIN_IMAGE2
                     selected_image_reversed = TRAIN_IMAGE_REVERSED2
+                elif event.key == pygame.K_F3:
+                    mixer.music.play()
+                elif event.key == pygame.K_F4:
+                    mixer.music.stop()
 
         screen.fill('#f0fdfa')
 
@@ -124,6 +134,15 @@ async def visualize(simulation: Simulation):
         screen.blit(t, (10, 350))
         t = STATS_FONT.render(f'People at stations: {simulation.people_at_stations}', True, COLOR_TEXT)
         screen.blit(t, (10, 370))
+        t = STATS_FONT.render(
+            f'Average arriving time: {sum(item for item in collected_stats_arrivals.values()) / (len(collected_stats_arrivals) or 1):.2f}s',
+            True, COLOR_TEXT)
+        screen.blit(t, (10, 390))
+
+        # draw music
+        if mixer.music.get_busy():
+            t = STATS_FONT.render(f'Now playing: C418 - Sweden', True, COLOR_TEXT)
+            screen.blit(t, (10, 420))
 
         # draw graphs
         if graph:
@@ -141,6 +160,7 @@ async def visualize(simulation: Simulation):
 
 collected_stats_platforms = {}
 collected_stats_trains = {}
+collected_stats_arrivals = {}
 
 graph = None
 
@@ -157,6 +177,7 @@ async def generate_graphs(simulation: Simulation):
 
         collected_stats_platforms[t] = sum(len(station.people) for station in stations) / len(stations)
         collected_stats_trains[t] = sum(len(train.people) for train in simulation.trains) / len(simulation.trains)
+        collected_stats_arrivals[t] = random.randint(317, 514) + random.random()
 
         plt.clf()
 
